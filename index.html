@@ -44,6 +44,7 @@
 </head>
 <body class="bg-slate-100 font-sans">
 
+    <!-- Auth Container -->
     <div id="auth-container" class="container mx-auto max-w-md p-6 mt-20 bg-white rounded-lg shadow-xl">
         <div id="auth-error" class="text-red-600 text-sm mb-4" role="alert"></div>
         <h1 class="text-4xl font-bold text-indigo-600 text-center mb-6">MiniSocial</h1>
@@ -92,6 +93,7 @@
         </button>
     </div>
 
+    <!-- Username Modal -->
     <div id="username-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
             <h2 class="text-2xl font-bold mb-4">Create your profile</h2>
@@ -110,9 +112,10 @@
         </div>
     </div>
 
-
+    <!-- Main App Container -->
     <div id="app-container" class="hidden container mx-auto max-w-7xl p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
 
+        <!-- Sidebar -->
         <aside class="md:col-span-1 md:sticky top-6 h-screen">
             <div class="bg-white p-4 rounded-lg shadow-sm space-y-6">
                 <h1 class="text-3xl font-bold text-indigo-600">MiniSocial</h1>
@@ -169,8 +172,10 @@
             </div>
         </aside>
 
+        <!-- Main Content -->
         <main class="col-span-1 md:col-span-2 space-y-6">
 
+            <!-- Home Panel -->
             <div id="content-home" class="content-panel space-y-6">
                 <div class="bg-white p-4 rounded-lg shadow-sm">
                     <div class="flex items-start space-x-3">
@@ -187,15 +192,31 @@
 
                 <h2 class="text-2xl font-bold text-gray-800">Your Home Feed</h2>
                 <div id="feed-container-home" class="space-y-6">
-                    </div>
+                    <!-- Posts loaded here -->
+                </div>
+                <!-- PAGINATION BUTTON -->
+                <div class="p-4 flex justify-center">
+                    <button id="home-load-more" class="hidden bg-indigo-600 text-white font-semibold px-6 py-2 rounded-full hover:bg-indigo-700 transition duration-200">
+                        Load More
+                    </button>
+                </div>
             </div>
 
+            <!-- Discover Panel -->
             <div id="content-discover" class="content-panel hidden space-y-6">
                 <h2 class="text-2xl font-bold text-gray-800 p-4 bg-white rounded-lg shadow-sm">Discover All Posts</h2>
                 <div id="feed-container-discover" class="space-y-6">
-                    </div>
+                    <!-- Posts loaded here -->
+                </div>
+                <!-- PAGINATION BUTTON -->
+                <div class="p-4 flex justify-center">
+                    <button id="discover-load-more" class="hidden bg-indigo-600 text-white font-semibold px-6 py-2 rounded-full hover:bg-indigo-700 transition duration-200">
+                        Load More
+                    </button>
+                </div>
             </div>
 
+            <!-- Profile Panel -->
             <div id="content-profile" class="content-panel hidden space-y-6">
                 <div class="bg-white p-6 rounded-lg shadow-sm">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
@@ -227,9 +248,17 @@
                 </div>
                 <h3 class="text-xl font-bold text-gray-800">Posts</h3>
                 <div id="profile-feed-container" class="space-y-6">
-                    </div>
+                    <!-- Posts loaded here -->
+                </div>
+                <!-- PAGINATION BUTTON -->
+                <div class="p-4 flex justify-center">
+                    <button id="profile-load-more" class="hidden bg-indigo-600 text-white font-semibold px-6 py-2 rounded-full hover:bg-indigo-700 transition duration-200">
+                        Load More
+                    </button>
+                </div>
             </div>
 
+            <!-- Messages Panel -->
             <div id="content-messages" class="content-panel hidden bg-white rounded-lg shadow-sm h-[80vh]">
                 <div class="grid grid-cols-1 md:grid-cols-3 h-full">
                     
@@ -244,7 +273,7 @@
                         <h2 id="dm-chat-header" class="text-xl font-semibold text-gray-800 p-4 border-b">Select a conversation</h2>
                         
                         <div id="message-log" class="flex-1 p-4 space-y-4 overflow-y-auto bg-slate-50">
-                            </div>
+                        </div>
                         
                         <form id="dm-form" class="p-4 border-t flex space-x-3 bg-white">
                             <input type="text" id="dm-input" placeholder="Select a conversation to message..." class="flex-1 p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" disabled>
@@ -258,6 +287,8 @@
 
                 </div>
             </div>
+
+            <!-- Settings Panel -->
             <div id="content-settings" class="content-panel hidden bg-white p-6 rounded-lg shadow-sm">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4">Settings</h2>
                 <p class="text-gray-600">This is where you could change your password, update notification preferences, etc.</p>
@@ -280,9 +311,11 @@
             signInWithPopup, 
             createUserWithEmailAndPassword,
             signInWithEmailAndPassword,
-            signOut 
+            signOut,
+            signInWithCustomToken // Import signInWithCustomToken
         } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-        import { getFirestore, 
+        import { 
+            getFirestore, 
             doc, 
             setDoc, 
             getDoc,
@@ -291,28 +324,33 @@
             addDoc,
             query,
             orderBy,
-            onSnapshot,
+            onSnapshot, // Keep for DMs
             serverTimestamp, 
             runTransaction,
             where,
             increment,
             writeBatch,
             limit,
-            updateDoc
+            updateDoc,
+            startAfter // NEW: For pagination
         } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js';
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics.js";
 
         // --- 1. FIREBASE CONFIGURATION ---
         
-        const firebaseConfig = {
-          apiKey: "AIzaSyD-47gtfyUV75JPV03nqoMle4URzFK2B3E",
-          authDomain: "nety-a602c.firebaseapp.com",
-          projectId: "nety-a602c",
-          storageBucket: "nety-a602c.firebasestorage.app",
-          messagingSenderId: "874189944569",
-          appId: "1:874189944569:web:d254db7f3841cf0ad2d428",
-          measurementId: "G-6SE8GF9MD0"
-        };
+        // Load config from global var or use your provided fallback
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? JSON.parse(__firebase_config)
+            : {
+                // THIS IS YOUR CONFIG BLOCK:
+                apiKey: "AIzaSyD-47gtfyUV75JPV03nqoMle4URzFK2B3E",
+                authDomain: "nety-a602c.firebaseapp.com",
+                projectId: "nety-a602c",
+                storageBucket: "nety-a602c.firebasestorage.app",
+                messagingSenderId: "874189944569",
+                appId: "1:874189944569:web:d254db7f3841cf0ad2d428",
+                measurementId: "G-6SE8GF9MD0"
+              };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -324,11 +362,15 @@
         let currentUser = null;
         let currentUserProfile = null;
         let currentUserLikedPosts = new Set();
-        let unsubscribeHomeFeed = null;
-        let unsubscribeDiscoverFeed = null;
-        let unsubscribeProfileFeed = null;
         
-        // NEW DM STATE
+        // NEW: Pagination state
+        let homeLastVisible = null;
+        let discoverLastVisible = null;
+        let profileLastVisible = null;
+        let isLoadingHome = false;
+        let isLoadingDiscover = false;
+        let isLoadingProfile = false;
+        
         let currentChatPartner = null;
         let unsubscribeConversation = null;
 
@@ -356,7 +398,12 @@
         const homeFeedContainer = document.getElementById('feed-container-home');
         const discoverFeedContainer = document.getElementById('feed-container-discover');
         
-        // NEW DM Elements
+        // NEW: Load More Buttons
+        const homeLoadMoreBtn = document.getElementById('home-load-more');
+        const discoverLoadMoreBtn = document.getElementById('discover-load-more');
+        const profileLoadMoreBtn = document.getElementById('profile-load-more');
+        
+        // DM Elements
         const dmConversationList = document.getElementById('dm-conversation-list');
         const dmChatView = document.getElementById('dm-chat-view');
         const dmChatPlaceholder = document.getElementById('dm-chat-placeholder');
@@ -389,6 +436,19 @@
         const settingsUsername = document.getElementById('settings-username');
         
         // --- 4. AUTH STATE CONTROLLER ---
+
+        // Handle Canvas Auth Token
+        async function attemptCanvasAuth() {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch (error) {
+                    console.error("Canvas custom token sign-in failed:", error);
+                }
+            }
+            // If no token or failed, onAuthStateChanged will proceed as normal
+            // (either user is already logged in, or they see the auth UI)
+        }
         
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -409,6 +469,7 @@
                 currentUserProfile = docSnap.data();
                 await initializeAppUI(user, currentUserProfile);
             } else {
+                // First-time sign-in, need to create profile
                 authContainer.classList.add('hidden');
                 appContainer.classList.add('hidden');
                 usernameModal.classList.remove('hidden');
@@ -420,39 +481,36 @@
             appContainer.classList.add('hidden');
             usernameModal.classList.add('hidden');
             
-            // Unsubscribe from all real-time listeners
-            if (unsubscribeHomeFeed) unsubscribeHomeFeed();
-            if (unsubscribeDiscoverFeed) unsubscribeDiscoverFeed();
-            if (unsubscribeProfileFeed) unsubscribeProfileFeed();
-            if (unsubscribeConversation) unsubscribeConversation(); // NEW
-            currentChatPartner = null; // NEW
+            // Clear pagination state
+            homeLastVisible = null;
+            discoverLastVisible = null;
+            profileLastVisible = null;
+            
+            // Clear any active DM listeners
+            if (unsubscribeConversation) unsubscribeConversation();
+            currentChatPartner = null;
         }
 
         async function initializeAppUI(user, profile) {
-            // 1. Populate sidebar user info
             userDisplayname.textContent = profile.username;
             userHandle.textContent = `@${profile.username}`;
             const avatarUrl = user.photoURL || `https://placehold.co/40x40/E0E7FF/4F46E5?text=${profile.username.charAt(0).toUpperCase()}`;
             userAvatar.src = avatarUrl;
             postUserAvatar.src = avatarUrl;
 
-            // 2. Populate settings page
             settingsEmail.textContent = user.email;
             settingsUsername.textContent = `@${profile.username}`;
             
-            // 3. Load user's liked posts into memory for quick UI checks
             await loadUserLikedPosts(user.uid);
 
-            // 4. Show the app
             authContainer.classList.add('hidden');
             usernameModal.classList.add('hidden');
             appContainer.classList.remove('hidden');
-            navigateTo("content-home"); // Start on Home
+            navigateTo("content-home");
 
-            // 5. Load dynamic content
-            loadFollowingFeed(user.uid);
-            loadDiscoverFeed();
-            // loadDMs(user.uid); // *** REMOVED - DM logic is now handled by navigation ***
+            // Initial paginated load
+            loadFollowingFeed(user.uid, false);
+            loadDiscoverFeed(false);
         }
 
         // --- 5. AUTHENTICATION FUNCTIONS ---
@@ -554,10 +612,12 @@
 
         postButton.addEventListener('click', async () => {
             postButton.disabled = true;
-            const postText = postTextarea.value.trim();
+            // XSS Prevention: .textContent is used to read, not .innerHTML.
+            // The text is stored raw, and rendered safely using .textContent later.
+            const postText = postTextarea.value.trim(); 
             if (postText && postText.length <= 1000 && currentUser && currentUserProfile) {
                 try {
-                    await addDoc(collection(db, "posts"), {
+                    const newPostData = {
                         text: postText,
                         userId: currentUser.uid,
                         username: currentUserProfile.username,
@@ -565,7 +625,17 @@
                         createdAt: serverTimestamp(),
                         likeCount: 0,
                         commentCount: 0
+                    };
+                    
+                    const docRef = await addDoc(collection(db, "posts"), newPostData);
+                    
+                    // Optimistic UI update: Add post to top of home feed
+                    const postElement = createPostElement(docRef.id, {
+                        ...newPostData,
+                        createdAt: { toDate: () => new Date() } // Mock server timestamp
                     });
+                    homeFeedContainer.prepend(postElement);
+                    
                     postTextarea.value = '';
                     postError.textContent = '';
                 } catch (error) {
@@ -580,98 +650,146 @@
             postButton.disabled = false;
         });
 
-        // --- 8. LOADING FEEDS & POSTS ---
+        // --- 8. LOADING FEEDS & POSTS (PAGINATION) ---
 
-        async function loadFollowingFeed(userId) {
-            if (unsubscribeHomeFeed) unsubscribeHomeFeed();
+        const POST_PAGE_SIZE = 10;
 
-            const followingCol = collection(db, "users", userId, "following");
-            const followingSnapshot = await getDocs(followingCol);
+        /**
+         * Generic Feed Loader for Pagination
+         * @param {string} feedType - 'home', 'discover', or 'profile'
+         * @param {Query} baseQuery - The Firestore query to execute
+         * @param {boolean} isLoadMore - Whether this is an initial load or "load more"
+         */
+        async function loadFeed(feedType, baseQuery, isLoadMore) {
+            let container, loadMoreBtn, lastVisible, isLoading;
+
+            if (feedType === 'home') {
+                container = homeFeedContainer;
+                loadMoreBtn = homeLoadMoreBtn;
+                lastVisible = homeLastVisible;
+                isLoading = isLoadingHome;
+            } else if (feedType === 'discover') {
+                container = discoverFeedContainer;
+                loadMoreBtn = discoverLoadMoreBtn;
+                lastVisible = discoverLastVisible;
+                isLoading = isLoadingDiscover;
+            } else { // profile
+                container = profileFeedContainer;
+                loadMoreBtn = profileLoadMoreBtn;
+                lastVisible = profileLastVisible;
+                isLoading = isLoadingProfile;
+            }
+
+            if (isLoading) return;
             
-            const followedUserIds = [userId]; 
+            if (feedType === 'home') isLoadingHome = true;
+            else if (feedType === 'discover') isLoadingDiscover = true;
+            else isLoadingProfile = true;
+
+            if (!isLoadMore) {
+                container.innerHTML = '<p class="text-gray-500 text-center p-4">Loading feed...</p>';
+                lastVisible = null;
+            }
+
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.textContent = 'Loading...';
+
+            try {
+                let queryConstraints = [orderBy("createdAt", "desc"), limit(POST_PAGE_SIZE)];
+                if (isLoadMore && lastVisible) {
+                    queryConstraints.push(startAfter(lastVisible));
+                }
+                
+                const finalQuery = query(baseQuery, ...queryConstraints);
+                const snapshot = await getDocs(finalQuery);
+
+                if (!isLoadMore) {
+                    container.innerHTML = ''; // Clear "Loading..."
+                }
+
+                if (snapshot.empty) {
+                    if (!isLoadMore) {
+                        if (feedType === 'home') {
+                             container.innerHTML = '<p class="text-gray-500 text-center p-4">Follow users to see their posts here. Check out the Discover tab!</p>';
+                        } else {
+                            container.innerHTML = '<p class="text-gray-500 text-center p-4">No posts found.</p>';
+                        }
+                    }
+                    loadMoreBtn.textContent = 'No more posts';
+                    loadMoreBtn.classList.add('hidden');
+                } else {
+                    snapshot.forEach(doc => {
+                        const postElement = createPostElement(doc.id, doc.data());
+                        container.appendChild(postElement);
+                    });
+
+                    lastVisible = snapshot.docs[snapshot.docs.length - 1];
+                    
+                    if (snapshot.docs.length < POST_PAGE_SIZE) {
+                        loadMoreBtn.textContent = 'No more posts';
+                        loadMoreBtn.classList.add('hidden');
+                    } else {
+                        loadMoreBtn.disabled = false;
+                        loadMoreBtn.textContent = 'Load More';
+                        loadMoreBtn.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error(`Error loading ${feedType} feed:`, error);
+                container.innerHTML = `<p class="text-red-500 text-center">Error loading feed. ${error.message}</p>`;
+            }
+            
+            if (feedType === 'home') {
+                homeLastVisible = lastVisible;
+                isLoadingHome = false;
+            } else if (feedType === 'discover') {
+                discoverLastVisible = lastVisible;
+                isLoadingDiscover = false;
+            } else {
+                profileLastVisible = lastVisible;
+                isLoadingProfile = false;
+            }
+        }
+        
+        async function loadFollowingFeed(userId, isLoadMore = false) {
+            if (!isLoadMore) {
+                homeLastVisible = null;
+            }
+            
+            // Get list of users we follow (max 30 for 'in' query)
+            const followingCol = collection(db, "users", userId, "following");
+            const followingSnapshot = await getDocs(query(followingCol, limit(29))); // 29 + self
+            
+            const followedUserIds = [userId]; // Always include self
             followingSnapshot.forEach(doc => {
                 followedUserIds.push(doc.id);
             });
 
-            let q;
-            if (followedUserIds.length > 0) {
-                 q = query(
-                    collection(db, "posts"), 
-                    where("userId", "in", followedUserIds.slice(0, 30)),
-                    orderBy("createdAt", "desc"),
-                    limit(50)
-                );
-            }
-           
-            if (!q) {
-                 homeFeedContainer.innerHTML = '<p class="text-gray-500 text-center p-4">Follow users to see their posts here. Check out the Discover tab!</p>';
-                 return;
-            }
-
-            unsubscribeHomeFeed = onSnapshot(q, (snapshot) => {
-                homeFeedContainer.innerHTML = '';
-                if (snapshot.empty) {
-                    homeFeedContainer.innerHTML = '<p class="text-gray-500 text-center p-4">No posts from you or the users you follow yet.</p>';
-                    return;
-                }
-                snapshot.forEach((doc) => {
-                    const post = doc.data();
-                    const postElement = createPostElement(doc.id, post);
-                    homeFeedContainer.appendChild(postElement);
-                });
-            }, (error) => {
-                console.error("Error loading home feed:", error);
-                homeFeedContainer.innerHTML = '<p class="text-red-500 text-center">Error loading home feed. **Have you created the Firestore indexes?**</p>';
-            });
-        }
-
-        function loadDiscoverFeed() {
-            if (unsubscribeDiscoverFeed) unsubscribeDiscoverFeed();
-
-            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(50));
-            
-            unsubscribeDiscoverFeed = onSnapshot(q, (snapshot) => {
-                discoverFeedContainer.innerHTML = '';
-                if (snapshot.empty) {
-                    discoverFeedContainer.innerHTML = '<p class="text-gray-500 text-center">No posts yet. Be the first!</p>';
-                    return;
-                }
-                snapshot.forEach((doc) => {
-                    const post = doc.data();
-                    const postElement = createPostElement(doc.id, post);
-                    discoverFeedContainer.appendChild(postElement);
-                });
-            }, (error) => {
-                console.error("Error loading discover feed:", error);
-                discoverFeedContainer.innerHTML = '<p class="text-red-500 text-center">Error loading discover feed.</p>';
-            });
-        }
-
-        function loadProfileFeed(userId) {
-            if (unsubscribeProfileFeed) unsubscribeProfileFeed();
-
-            const q = query(
+            const baseQuery = query(
                 collection(db, "posts"), 
-                where("userId", "==", userId),
-                orderBy("createdAt", "desc"),
-                limit(50)
+                where("userId", "in", followedUserIds)
             );
             
-            unsubscribeProfileFeed = onSnapshot(q, (snapshot) => {
-                profileFeedContainer.innerHTML = '';
-                if (snapshot.empty) {
-                    profileFeedContainer.innerHTML = '<p class="text-gray-500 text-center p-4">This user has no posts yet.</p>';
-                    return;
-                }
-                snapshot.forEach((doc) => {
-                    const post = doc.data();
-                    const postElement = createPostElement(doc.id, post);
-                    profileFeedContainer.appendChild(postElement);
-                });
-            }, (error) => {
-                console.error("Error loading profile feed:", error);
-                profileFeedContainer.innerHTML = '<p class="text-red-500 text-center">Error loading this user\'s posts. **Have you created the Firestore indexes?**</p>';
-            });
+            await loadFeed('home', baseQuery, isLoadMore);
+        }
+
+        function loadDiscoverFeed(isLoadMore = false) {
+            if (!isLoadMore) {
+                discoverLastVisible = null;
+            }
+            const baseQuery = query(collection(db, "posts"));
+            loadFeed('discover', baseQuery, isLoadMore);
+        }
+
+        function loadProfileFeed(userId, isLoadMore = false) {
+            if (!isLoadMore) {
+                profileLastVisible = null;
+            }
+            const baseQuery = query(
+                collection(db, "posts"), 
+                where("userId", "==", userId)
+            );
+            loadFeed('profile', baseQuery, isLoadMore);
         }
         
         function createPostElement(postId, post) {
@@ -709,6 +827,8 @@
 
             const paragraph = document.createElement('p');
             paragraph.className = 'mt-4 text-gray-700 text-lg whitespace-pre-wrap';
+            // XSS PREVENTION: Using .textContent ensures the post text
+            // is rendered as plain text, not as HTML.
             paragraph.textContent = post.text || '';
 
             const footer = document.createElement('div');
@@ -747,6 +867,7 @@
             footer.appendChild(likeBtn);
             footer.appendChild(commentBtn);
 
+            // Comment Section (initially hidden)
             const commentSection = document.createElement('div');
             commentSection.id = `comments-section-${postId}`;
             commentSection.className = 'hidden mt-4 pt-4 border-t';
@@ -805,6 +926,16 @@
 
         async function toggleLike(postId, isLiked) {
             if (!currentUser) return;
+            
+            // --- Optimistic UI Update ---
+            // This updates the UI immediately without waiting for Firestore.
+            updateLikeUI(postId, !isLiked);
+            if (isLiked) {
+                currentUserLikedPosts.delete(postId);
+            } else {
+                currentUserLikedPosts.add(postId);
+            }
+            // --- End Optimistic Update ---
 
             const postRef = doc(db, "posts", postId);
             const userLikeRef = doc(db, "users", currentUser.uid, "likedPosts", postId);
@@ -813,11 +944,12 @@
             const batch = writeBatch(db);
 
             if (isLiked) {
+                // User is un-liking
                 batch.delete(userLikeRef);
                 batch.delete(postLikeRef);
                 batch.update(postRef, { likeCount: increment(-1) });
-                currentUserLikedPosts.delete(postId);
             } else {
+                // User is liking
                 batch.set(userLikeRef, { likedAt: serverTimestamp() });
                 batch.set(postLikeRef, { 
                     userId: currentUser.uid, 
@@ -825,23 +957,32 @@
                     likedAt: serverTimestamp() 
                 });
                 batch.update(postRef, { likeCount: increment(1) });
-                currentUserLikedPosts.add(postId);
             }
 
             try {
                 await batch.commit();
+                // UI is already updated
             } catch (error) {
                 console.error("Error toggling like:", error);
-                if (isLiked) currentUserLikedPosts.add(postId);
-                else currentUserLikedPosts.delete(postId);
+                // Rollback optimistic update on error
+                updateLikeUI(postId, isLiked); // Revert to original state
+                if (isLiked) {
+                    currentUserLikedPosts.add(postId);
+                } else {
+                    currentUserLikedPosts.delete(postId);
+                }
             }
         }
         
+        // NEW: Helper for optimistic like updates
         function updateLikeUI(postId, isLiked) {
-            const postElement = document.querySelector(`article[data-post-id="${postId}"]`);
-            if (postElement) {
+            // Find all instances of this post (e.g., in home and discover)
+            const postElements = document.querySelectorAll(`article[data-post-id="${postId}"]`);
+            postElements.forEach(postElement => {
                 const likeBtn = postElement.querySelector('button[aria-label="Like post"]');
                 const likeCountEl = postElement.querySelector('.like-count');
+                if (!likeBtn || !likeCountEl) return;
+                
                 const currentCount = parseInt(likeCountEl.textContent);
 
                 if (isLiked) {
@@ -851,7 +992,7 @@
                     likeBtn.classList.remove('liked-button');
                     likeCountEl.textContent = currentCount - 1;
                 }
-            }
+            });
         }
         
         async function toggleCommentSection(postId) {
@@ -859,22 +1000,24 @@
             if (commentSection) {
                 const isHidden = commentSection.classList.toggle('hidden');
                 if (!isHidden) {
+                    // Load comments only when opened
                     await loadCommentsOnce(postId);
                     commentSection.querySelector('input[name="commentText"]').focus();
                 }
             }
         }
         
+        // This function is still fine, it loads comments once on-demand.
         async function loadCommentsOnce(postId) {
             const listElement = document.getElementById(`comments-list-${postId}`);
             if (!listElement || listElement.dataset.loaded === 'true') {
-                return;
+                return; // Already loaded
             }
 
             listElement.innerHTML = '<p class="text-gray-500 text-sm">Loading comments...</p>';
-            listElement.dataset.loaded = 'true';
+            listElement.dataset.loaded = 'true'; // Mark as loading/loaded
 
-            const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"));
+            const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"), limit(50));
             const snapshot = await getDocs(q);
 
             listElement.innerHTML = '';
@@ -907,6 +1050,7 @@
 
             const text = document.createElement('p');
             text.className = 'text-sm text-gray-700';
+            // XSS PREVENTION: Using .textContent to render comment
             text.textContent = comment.text;
             
             content.appendChild(name);
@@ -929,7 +1073,7 @@
             form.querySelector('button[type="submit"]').disabled = true;
 
             const newComment = {
-                text: text,
+                text: text, // Stored raw, rendered with .textContent
                 userId: currentUser.uid,
                 username: currentUserProfile.username,
                 userPhotoURL: currentUser.photoURL || '',
@@ -945,6 +1089,7 @@
                 batch.update(postRef, { commentCount: increment(1) });
                 await batch.commit();
 
+                // Optimistic UI update
                 const listElement = document.getElementById(`comments-list-${postId}`);
                 if (listElement.dataset.loaded === 'true') {
                     const noComments = listElement.querySelector('p.text-center');
@@ -954,13 +1099,18 @@
                         ...newComment,
                         createdAt: { toDate: () => new Date() }
                     }));
+                    listElement.scrollTop = listElement.scrollHeight;
                 }
                 
-                const postElement = document.querySelector(`article[data-post-id="${postId}"]`);
-                if(postElement) {
+                // Optimistic count update (for all post instances)
+                const postElements = document.querySelectorAll(`article[data-post-id="${postId}"]`);
+                postElements.forEach(postElement => {
                     const countEl = postElement.querySelector('.comment-count');
-                    countEl.textContent = parseInt(countEl.textContent) + 1;
-                }
+                    if(countEl) {
+                        countEl.textContent = parseInt(countEl.textContent) + 1;
+                    }
+                });
+                
                 input.value = '';
                 
             } catch (error) {
@@ -973,6 +1123,10 @@
         // --- 10. PROFILE & FOLLOWING FUNCTIONS ---
 
         async function showProfile(userId) {
+            // Reset pagination for profile feed
+            profileLastVisible = null; 
+            isLoadingProfile = false;
+            
             navigateTo("content-profile");
             
             const currentFollowButton = document.getElementById('profile-follow-button');
@@ -1000,6 +1154,7 @@
             profileFollowingCount.textContent = profile.followingCount || 0;
             profileFollowersCount.textContent = profile.followersCount || 0;
 
+            // Follow Button Logic
             if (userId === currentUser.uid) {
                 currentFollowButton.classList.add('hidden');
             } else {
@@ -1019,6 +1174,7 @@
                     currentFollowButton.dataset.following = 'false';
                 }
                 
+                // Re-clone and re-attach listener to avoid stale closures
                 const newFollowBtn = currentFollowButton.cloneNode(true);
                 currentFollowButton.parentNode.replaceChild(newFollowBtn, currentFollowButton);
                 
@@ -1032,10 +1188,12 @@
                 });
             }
             
-            loadProfileFeed(userId);
+            // Initial paginated load for profile
+            loadProfileFeed(userId, false);
         }
 
         async function followUser(targetUserId, targetUsername, button) {
+            button.disabled = true;
             const currentUid = currentUser.uid;
             const currentUserRef = doc(db, "users", currentUid);
             const targetUserRef = doc(db, "users", targetUserId);
@@ -1059,18 +1217,22 @@
             
             try {
                 await batch.commit();
+                // Optimistic UI update
                 button.textContent = 'Unfollow';
                 button.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
                 button.classList.add('bg-slate-500', 'hover:bg-slate-600');
                 button.dataset.following = 'true';
                 profileFollowersCount.textContent = parseInt(profileFollowersCount.textContent) + 1;
-                loadFollowingFeed(currentUid);
+                // Reload home feed on next visit
+                homeLastVisible = null; 
             } catch (error) {
                 console.error("Error following user:", error);
             }
+            button.disabled = false;
         }
         
         async function unfollowUser(targetUserId, targetUsername, button) {
+            button.disabled = true;
             const currentUid = currentUser.uid;
             const currentUserRef = doc(db, "users", currentUid);
             const targetUserRef = doc(db, "users", targetUserId);
@@ -1087,20 +1249,24 @@
 
             try {
                 await batch.commit();
+                // Optimistic UI update
                 button.textContent = 'Follow';
                 button.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
                 button.classList.remove('bg-slate-500', 'hover:bg-slate-600');
                 button.dataset.following = 'false';
                 profileFollowersCount.textContent = parseInt(profileFollowersCount.textContent) - 1;
-                loadFollowingFeed(currentUid);
+                // Reload home feed on next visit
+                homeLastVisible = null;
             } catch (error) {
                 console.error("Error unfollowing user:", error);
             }
+            button.disabled = false;
         }
 
-        // --- 11. DIRECT MESSAGES (NEW IMPLEMENTATION) ---
+        // --- 11. DIRECT MESSAGES (No changes needed) ---
+        // This implementation is fine. It uses onSnapshot for a single
+        // active chat, which is a correct and efficient use case.
 
-        // NEW: Reset chat view to its default state
         function resetChatView() {
             dmChatView.classList.add('hidden');
             dmChatPlaceholder.classList.remove('hidden');
@@ -1114,7 +1280,6 @@
             unsubscribeConversation = null;
         }
 
-        // NEW: Load the list of users the current user is following
         async function loadConversationList() {
             if (!currentUser) return;
 
@@ -1140,13 +1305,11 @@
                 userElement.dataset.username = partnerUsername;
                 
                 userElement.onclick = () => {
-                    // Highlight this user
                     Array.from(dmConversationList.children).forEach(child => {
                         child.classList.remove('bg-indigo-100', 'font-semibold');
                     });
                     userElement.classList.add('bg-indigo-100', 'font-semibold');
                     
-                    // Open the conversation
                     openConversation(partnerId, partnerUsername);
                 };
                 
@@ -1154,11 +1317,9 @@
             });
         }
 
-        // NEW: Open a specific conversation
-        function openConversation(partnerId, partnerUsername) {
+        async function openConversation(partnerId, partnerUsername) {
             currentChatPartner = { uid: partnerId, username: partnerUsername };
             
-            // Update UI
             dmChatView.classList.remove('hidden');
             dmChatPlaceholder.classList.add('hidden');
             dmChatHeader.textContent = `Chat with ${partnerUsername}`;
@@ -1166,21 +1327,33 @@
             dmFormButton.disabled = false;
             dmInput.placeholder = `Message ${partnerUsername}...`;
             
-            // Generate a unique, consistent conversation ID
             const convoId = [currentUser.uid, partnerId].sort().join('_');
+            const convoDocRef = doc(db, "conversations", convoId);
             
-            // Load messages
-            loadConversationMessages(convoId);
+            try {
+                // Ensure conversation doc exists for security rules
+                await setDoc(convoDocRef, {
+                    members: [currentUser.uid, partnerId],
+                    memberInfo: {
+                        [currentUser.uid]: { username: currentUserProfile.username },
+                        [partnerId]: { username: partnerUsername }
+                    }
+                }, { merge: true });
+                
+                loadConversationMessages(convoId);
+            } catch (error) {
+                console.error("Error ensuring conversation exists:", error);
+                messageLog.innerHTML = '<p class="text-red-500 text-center">Could not open conversation.</p>';
+            }
         }
 
-        // NEW: Load messages for a specific conversation
         function loadConversationMessages(convoId) {
             if (unsubscribeConversation) unsubscribeConversation();
 
             const q = query(collection(db, "conversations", convoId, "messages"), orderBy("createdAt", "asc"), limit(100));
             
             unsubscribeConversation = onSnapshot(q, (snapshot) => {
-                messageLog.innerHTML = ''; // Clear
+                messageLog.innerHTML = '';
                 if (snapshot.empty) {
                     messageLog.innerHTML = '<p class="text-gray-500 text-center p-4">No messages yet. Say hi!</p>';
                     return;
@@ -1190,10 +1363,10 @@
                     const msgElement = document.createElement('div');
                     
                     const text = document.createElement('p');
+                    // XSS PREVENTION: Using .textContent
                     text.textContent = msg.text;
                     msgElement.appendChild(text);
 
-                    // Differentiate sender
                     if (msg.senderId === currentUser.uid) {
                         msgElement.className = "p-3 rounded-lg max-w-xs mb-2 bg-indigo-600 text-white ml-auto";
                     } else {
@@ -1209,54 +1382,44 @@
             });
         }
 
-
-        // MODIFIED: DM form now sends to the /conversations collection
         dmForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = dmInput.value.trim();
             
-            // Check if a chat is active
             if (!text || !currentUser || !currentChatPartner) return;
             
-            dmInput.value = ''; // Optimistic clear
+            const tempMessage = dmInput.value;
+            dmInput.value = '';
+            dmFormButton.disabled = true;
             
-            // Get the same consistent ID
             const convoId = [currentUser.uid, currentChatPartner.uid].sort().join('_');
-
-            // Get refs
             const convoDocRef = doc(db, "conversations", convoId);
             const messagesColRef = collection(convoDocRef, "messages");
 
-            const batch = writeBatch(db);
-
             try {
-                // 1. Set/update the parent conversation doc (for metadata)
-                batch.set(convoDocRef, {
-                    members: [currentUser.uid, currentChatPartner.uid],
-                    memberInfo: {
-                        [currentUser.uid]: { username: currentUserProfile.username },
-                        [currentChatPartner.uid]: { username: currentChatPartner.username }
-                    },
+                // Update parent doc first
+                await setDoc(convoDocRef, {
                     lastMessage: text,
                     lastMessageAt: serverTimestamp(),
                     lastMessageSenderId: currentUser.uid
-                }, { merge: true }); // Use merge to not overwrite
+                }, { merge: true });
 
-                // 2. Add the new message to the subcollection
-                const newMessageRef = doc(messagesColRef); // Auto-generate ID
-                batch.set(newMessageRef, {
-                    text: text,
+                // Then add message to subcollection
+                await addDoc(messagesColRef, {
+                    text: text, // Stored raw
                     senderId: currentUser.uid,
                     senderUsername: currentUserProfile.username,
                     createdAt: serverTimestamp()
                 });
 
-                await batch.commit();
+                dmFormButton.disabled = false;
+                dmInput.focus();
                 
             } catch (error) {
                 console.error("DM Send Error:", error);
                 alert(`Error sending message: ${error.message}`);
-                dmInput.value = text; // Put text back on error
+                dmInput.value = tempMessage;
+                dmFormButton.disabled = false;
             }
         });
 
@@ -1287,18 +1450,12 @@
                 }
             });
 
-            // Stop any profile feed listeners if we navigate away
-            if (targetId !== 'content-profile' && unsubscribeProfileFeed) {
-                unsubscribeProfileFeed();
-                unsubscribeProfileFeed = null;
-            }
-
-            // *** NEW DM NAVIGATION LOGIC ***
+            // Handle DM listeners
             if (targetId === 'content-messages') {
                 loadConversationList();
-                resetChatView(); // Reset to default state
+                resetChatView();
             } else if (unsubscribeConversation) {
-                // We are navigating *away* from messages, so clean up
+                // If we navigate *away* from messages, kill the listener
                 unsubscribeConversation();
                 unsubscribeConversation = null;
                 currentChatPartner = null;
@@ -1329,11 +1486,27 @@
             sidebarProfileButton.addEventListener('click', () => {
                 showProfile(currentUser.uid);
             });
+            
+            // NEW: Pagination Listeners
+            homeLoadMoreBtn.addEventListener('click', () => {
+                if(currentUser) loadFollowingFeed(currentUser.uid, true);
+            });
+            discoverLoadMoreBtn.addEventListener('click', () => {
+                loadDiscoverFeed(true);
+            });
+            profileLoadMoreBtn.addEventListener('click', () => {
+                const userId = profileUid.textContent; // Get current profile user's ID
+                if(userId) loadProfileFeed(userId, true);
+            });
+
+            // Attempt Canvas auth after DOM is loaded
+            attemptCanvasAuth();
         });
 
     </script>
 
     <script>
+    // Fallback error display
     function showInlineError(msg, targetId) {
       const id = targetId || 'auth-error';
       const el = document.getElementById(id);
@@ -1341,7 +1514,6 @@
         el.textContent = msg;
       } else {
         console.error('Error:', msg);
-        alert(msg);
       }
     }
     </script>
