@@ -40,14 +40,20 @@
             fill: #EF4444;
         }
 
-        /* NEW: Active state for bottom nav */
+        /* Active state for bottom nav */
         .bottom-nav-link.active {
             color: #4F46E5; /* indigo-600 */
         }
+        
+        /* NEW: Active state for filter tabs */
+        .filter-link.active {
+            border-color: #4F46E5; /* indigo-600 */
+            background-color: #EEF2FF; /* indigo-50 */
+            color: #4338CA; /* indigo-700 */
+            font-weight: 600;
+        }
 
-        /* * NEW: Mobile message UI layout control
-         * On mobile, we hide/show the list and chat panels.
-        */
+        /* Mobile message UI layout control */
         @media (max-width: 767px) {
             /* By default, show the list */
             #content-messages.mobile-chat-list #dm-list-container {
@@ -142,11 +148,27 @@
         </div>
     </div>
 
+    <!-- NEW: Account Deletion Modal -->
+    <div id="delete-account-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h2 class="text-2xl font-bold text-red-600 mb-4">Delete Account</h2>
+            <p class="text-gray-600 mb-4">Are you sure you want to delete your account? This action is permanent and cannot be undone. All your profile data will be removed.</p>
+            <div id="delete-error" class="text-red-600 text-sm mb-4" role="alert"></div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-full hover:bg-gray-300 transition duration-200">
+                    Cancel
+                </button>
+                <button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-full hover:bg-red-700 transition duration-200">
+                    Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main App Container -->
     <div id="app-container" class="hidden container mx-auto max-w-7xl p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
 
         <!-- Sidebar (Desktop-only) -->
-        <!-- MODIFIED: Added 'hidden md:block' to hide on mobile -->
         <aside class="hidden md:block md:col-span-1 md:sticky top-6 h-screen">
             <div class="bg-white p-4 rounded-lg shadow-sm space-y-6">
                 <h1 class="text-3xl font-bold text-indigo-600">MiniSocial</h1>
@@ -204,12 +226,11 @@
         </aside>
 
         <!-- Main Content -->
-        <!-- MODIFIED: Added pb-20 md:pb-0 for bottom nav clearance -->
         <main class="col-span-1 md:col-span-2 space-y-6 pb-20 md:pb-0">
 
             <!-- Home Panel -->
             <div id="content-home" class="content-panel space-y-6">
-                <!-- MODIFIED: Hide post box on mobile, it's replaced by the new post panel -->
+                <!-- Hide post box on mobile, it's replaced by the new post panel -->
                 <div class="bg-white p-4 rounded-lg shadow-sm hidden md:block">
                     <div class="flex items-start space-x-3">
                         <img id="post-user-avatar" src="https://placehold.co/40x40/E0E7FF/4F46E5?text=U" alt="User Avatar" class="w-10 h-10 rounded-full">
@@ -237,7 +258,26 @@
 
             <!-- Discover Panel -->
             <div id="content-discover" class="content-panel hidden space-y-6">
-                <h2 class="text-2xl font-bold text-gray-800 p-4 bg-white rounded-lg shadow-sm">Discover All Posts</h2>
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold text-gray-800">Discover All Posts</h2>
+                    
+                    <!-- NEW: Filter tabs -->
+                    <div id="discover-filters" class="flex space-x-1 md:space-x-4 border-b border-gray-200 mt-4 overflow-x-auto">
+                        <button data-filter="new" class="filter-link active flex-shrink-0 text-gray-600 py-3 px-3 md:px-4 border-b-2 border-transparent hover:border-gray-400 transition duration-200">
+                            New
+                        </button>
+                        <button data-filter="popular" class="filter-link flex-shrink-0 text-gray-600 py-3 px-3 md:px-4 border-b-2 border-transparent hover:border-gray-400 transition duration-200">
+                            Popular
+                        </button>
+                        <button data-filter="likes" class="filter-link flex-shrink-0 text-gray-600 py-3 px-3 md:px-4 border-b-2 border-transparent hover:border-gray-400 transition duration-200">
+                            Most Likes
+                        </button>
+                        <button data-filter="comments" class="filter-link flex-shrink-0 text-gray-600 py-3 px-3 md:px-4 border-b-2 border-transparent hover:border-gray-400 transition duration-200">
+                            Most Comments
+                        </button>
+                    </div>
+                </div>
+
                 <div id="feed-container-discover" class="space-y-6">
                     <!-- Posts loaded here -->
                 </div>
@@ -292,12 +332,9 @@
             </div>
 
             <!-- Messages Panel -->
-            <!-- MODIFIED: Added mobile-chat-list, h-screen on mobile, md:h-[80vh] for desktop -->
             <div id="content-messages" class="content-panel hidden bg-white rounded-lg shadow-sm h-screen md:h-[80vh] mobile-chat-list">
-                <!-- MODIFIED: md:grid-cols-3 and h-full -->
                 <div class="grid grid-cols-1 md:grid-cols-3 h-full">
                     
-                    <!-- MODIFIED: Wrapped in container, md:flex, flex-col, h-full -->
                     <div id="dm-list-container" class="md:col-span-1 border-r border-gray-200 h-full flex flex-col">
                         <h2 class="text-2xl font-bold text-gray-800 p-4 border-b">Conversations</h2>
                         <div id="dm-conversation-list" class="flex-1 overflow-y-auto">
@@ -305,9 +342,7 @@
                         </div>
                     </div>
                     
-                    <!-- MODIFIED: Wrapped in container, md:flex, flex-col, h-full -->
                     <div id="dm-chat-container" class="md:col-span-2 h-full flex flex-col hidden">
-                        <!-- MODIFIED: Added Back button for mobile -->
                         <div id="dm-chat-header-bar" class="flex items-center p-4 border-b">
                             <button id="dm-back-btn" class="md:hidden p-1 mr-2 text-gray-600 hover:text-indigo-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -326,7 +361,6 @@
                         </form>
                     </div>
 
-                    <!-- MODIFIED: Wrapped in container, md:flex -->
                     <div id="dm-placeholder-container" class="md:col-span-2 h-full md:flex items-center justify-center bg-slate-50 hidden">
                          <p class="text-gray-500">Select a conversation to start chatting.</p>
                     </div>
@@ -334,7 +368,7 @@
                 </div>
             </div>
 
-            <!-- NEW: Full-screen Post Panel (for mobile) -->
+            <!-- Full-screen Post Panel (for mobile) -->
             <div id="content-post" class="content-panel hidden space-y-4 bg-white p-4 rounded-lg shadow-sm">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-gray-800">New Post</h2>
@@ -354,18 +388,33 @@
 
             <!-- Settings Panel -->
             <div id="content-settings" class="content-panel hidden bg-white p-6 rounded-lg shadow-sm">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Settings</h2>
-                <p class="text-gray-600">This is where you could change your password, update notification preferences, etc.</p>
-                <p class="mt-4 font-medium">Your Email:</p>
-                <p id="settings-email" class="text-gray-700"></p>
-                <p class="font-medium mt-2">Your Username:</p>
-                <p id="settings-username" class="text-gray-700"></p>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Settings</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <p class="font-medium">Your Email:</p>
+                        <p id="settings-email" class="text-gray-700"></p>
+                    </div>
+                    <div>
+                        <p class="font-medium">Your Username:</p>
+                        <p id="settings-username" class="text-gray-700"></p>
+                    </div>
+                </div>
+
+                <!-- NEW: Delete Account Section -->
+                <div class="mt-8 pt-6 border-t border-red-200">
+                    <h3 class="text-xl font-bold text-red-600">Delete Account</h3>
+                    <p class="text-gray-600 mt-2">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                    <button id="delete-account-btn" class="mt-4 bg-red-600 text-white font-bold py-2 px-6 rounded-full hover:bg-red-700 transition duration-200">
+                        Delete Your Account
+                    </button>
+                </div>
             </div>
 
         </main>
     </div>
 
-    <!-- NEW: Bottom Navigation Bar (Mobile-only) -->
+    <!-- Bottom Navigation Bar (Mobile-only) -->
     <nav id="bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex justify-around items-center z-40">
         <a href="#" data-target="content-home" class="bottom-nav-link p-2 text-gray-600 active">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
@@ -398,7 +447,8 @@
             createUserWithEmailAndPassword,
             signInWithEmailAndPassword,
             signOut,
-            signInWithCustomToken // Import signInWithCustomToken
+            signInWithCustomToken,
+            deleteUser // NEW: Import deleteUser
         } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
         import { 
             getFirestore, 
@@ -410,7 +460,7 @@
             addDoc,
             query,
             orderBy,
-            onSnapshot, // Keep for DMs
+            onSnapshot, 
             serverTimestamp, 
             runTransaction,
             where,
@@ -418,7 +468,8 @@
             writeBatch,
             limit,
             updateDoc,
-            startAfter // NEW: For pagination
+            startAfter,
+            deleteDoc // NEW: Import deleteDoc
         } from 'https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js';
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-analytics.js";
 
@@ -449,7 +500,6 @@
         let currentUserProfile = null;
         let currentUserLikedPosts = new Set();
         
-        // NEW: Pagination state
         let homeLastVisible = null;
         let discoverLastVisible = null;
         let profileLastVisible = null;
@@ -459,6 +509,8 @@
         
         let currentChatPartner = null;
         let unsubscribeConversation = null;
+
+        let currentDiscoverFilter = 'new'; // NEW: Filter state
 
         // --- 3. DOM ELEMENTS ---
         const authContainer = document.getElementById('auth-container');
@@ -484,7 +536,7 @@
         const homeFeedContainer = document.getElementById('feed-container-home');
         const discoverFeedContainer = document.getElementById('feed-container-discover');
         
-        // NEW: Post Panel (for mobile)
+        // Post Panel (for mobile)
         const postPanel = document.getElementById('content-post');
         const postPanelTextarea = document.getElementById('post-panel-textarea');
         const postPanelButton = document.getElementById('post-panel-button');
@@ -492,22 +544,22 @@
         const postPanelCancel = document.getElementById('post-cancel-button');
         const postPanelAvatar = document.getElementById('post-panel-user-avatar');
 
-        // NEW: Load More Buttons
+        // Load More Buttons
         const homeLoadMoreBtn = document.getElementById('home-load-more');
         const discoverLoadMoreBtn = document.getElementById('discover-load-more');
         const profileLoadMoreBtn = document.getElementById('profile-load-more');
         
         // DM Elements
-        const dmContentPanel = document.getElementById('content-messages'); // NEW
+        const dmContentPanel = document.getElementById('content-messages'); 
         const dmConversationList = document.getElementById('dm-conversation-list');
-        const dmChatView = document.getElementById('dm-chat-container'); // MODIFIED
-        const dmChatPlaceholder = document.getElementById('dm-placeholder-container'); // MODIFIED
+        const dmChatView = document.getElementById('dm-chat-container'); 
+        const dmChatPlaceholder = document.getElementById('dm-placeholder-container'); 
         const dmChatHeader = document.getElementById('dm-chat-header');
         const dmForm = document.getElementById('dm-form');
         const dmInput = document.getElementById('dm-input');
         const dmFormButton = dmForm.querySelector('button[type="submit"]');
         const messageLog = document.getElementById('message-log');
-        const dmBackButton = document.getElementById('dm-back-btn'); // NEW
+        const dmBackButton = document.getElementById('dm-back-btn'); 
 
         // UI Elements
         const userAvatar = document.getElementById('user-avatar');
@@ -530,6 +582,16 @@
         // Settings Page Elements
         const settingsEmail = document.getElementById('settings-email');
         const settingsUsername = document.getElementById('settings-username');
+        
+        // NEW: Delete Account Elements
+        const deleteAccountBtn = document.getElementById('delete-account-btn');
+        const deleteAccountModal = document.getElementById('delete-account-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const deleteError = document.getElementById('delete-error');
+        
+        // NEW: Discover Filter Elements
+        const discoverFilters = document.getElementById('discover-filters');
         
         // --- 4. AUTH STATE CONTROLLER ---
 
@@ -576,6 +638,7 @@
             authContainer.classList.remove('hidden');
             appContainer.classList.add('hidden');
             usernameModal.classList.add('hidden');
+            deleteAccountModal.classList.add('hidden'); // NEW: Hide modal on logout
             
             // Clear pagination state
             homeLastVisible = null;
@@ -593,9 +656,9 @@
             const avatarUrl = user.photoURL || `https://placehold.co/40x40/E0E7FF/4F46E5?text=${profile.username.charAt(0).toUpperCase()}`;
             userAvatar.src = avatarUrl;
             postUserAvatar.src = avatarUrl;
-            postPanelAvatar.src = avatarUrl; // NEW: Set avatar in post panel
+            postPanelAvatar.src = avatarUrl; 
 
-            settingsEmail.textContent = user.email;
+            settingsEmail.textContent = user.email || 'Not provided';
             settingsUsername.textContent = `@${profile.username}`;
             
             await loadUserLikedPosts(user.uid);
@@ -707,7 +770,7 @@
 
         // --- 7. POSTING (FIRESTORE) ---
 
-        // NEW: Generic function to create a post
+        // Generic function to create a post
         async function createPost(text, onStart, onSuccess, onError) {
             onStart(); // Disable button, clear errors
             const postText = text.trim(); 
@@ -730,7 +793,8 @@
                         userPhotoURL: currentUser.photoURL || '',
                         createdAt: serverTimestamp(),
                         likeCount: 0,
-                        commentCount: 0
+                        commentCount: 0,
+                        popularityScore: 0 // NEW: Initialize popularity score
                     };
                     
                     const docRef = await addDoc(collection(db, "posts"), newPostData);
@@ -771,7 +835,7 @@
             );
         });
 
-        // NEW: Mobile post panel button
+        // Mobile post panel button
         postPanelButton.addEventListener('click', () => {
             createPost(
                 postPanelTextarea.value,
@@ -792,7 +856,7 @@
             );
         });
         
-        // NEW: Mobile post panel cancel button
+        // Mobile post panel cancel button
         postPanelCancel.addEventListener('click', () => {
             postPanelTextarea.value = '';
             postPanelError.textContent = '';
@@ -808,9 +872,10 @@
          * Generic Feed Loader for Pagination
          * @param {string} feedType - 'home', 'discover', or 'profile'
          * @param {Query} baseQuery - The Firestore query to execute
+         * @param {QueryConstraint} sortConstraint - The orderBy constraint
          * @param {boolean} isLoadMore - Whether this is an initial load or "load more"
          */
-        async function loadFeed(feedType, baseQuery, isLoadMore) {
+        async function loadFeed(feedType, baseQuery, sortConstraint, isLoadMore) {
             let container, loadMoreBtn, lastVisible, isLoading;
 
             if (feedType === 'home') {
@@ -845,7 +910,8 @@
             loadMoreBtn.textContent = 'Loading...';
 
             try {
-                let queryConstraints = [orderBy("createdAt", "desc"), limit(POST_PAGE_SIZE)];
+                // MODIFIED: Use the passed-in sortConstraint
+                let queryConstraints = [sortConstraint, limit(POST_PAGE_SIZE)];
                 if (isLoadMore && lastVisible) {
                     queryConstraints.push(startAfter(lastVisible));
                 }
@@ -920,15 +986,35 @@
                 where("userId", "in", followedUserIds)
             );
             
-            await loadFeed('home', baseQuery, isLoadMore);
+            // MODIFIED: Pass sort constraint
+            await loadFeed('home', baseQuery, orderBy("createdAt", "desc"), isLoadMore);
         }
 
+        // MODIFIED: To use filter state
         function loadDiscoverFeed(isLoadMore = false) {
             if (!isLoadMore) {
                 discoverLastVisible = null;
             }
+            
+            let sortConstraint;
+            switch (currentDiscoverFilter) {
+                case 'popular':
+                    sortConstraint = orderBy("popularityScore", "desc");
+                    break;
+                case 'likes':
+                    sortConstraint = orderBy("likeCount", "desc");
+                    break;
+                case 'comments':
+                    sortConstraint = orderBy("commentCount", "desc");
+                    break;
+                case 'new':
+                default:
+                    sortConstraint = orderBy("createdAt", "desc");
+                    break;
+            }
+
             const baseQuery = query(collection(db, "posts"));
-            loadFeed('discover', baseQuery, isLoadMore);
+            loadFeed('discover', baseQuery, sortConstraint, isLoadMore);
         }
 
         function loadProfileFeed(userId, isLoadMore = false) {
@@ -939,7 +1025,8 @@
                 collection(db, "posts"), 
                 where("userId", "==", userId)
             );
-            loadFeed('profile', baseQuery, isLoadMore);
+            // MODIFIED: Pass sort constraint
+            loadFeed('profile', baseQuery, orderBy("createdAt", "desc"), isLoadMore);
         }
         
         function createPostElement(postId, post) {
@@ -1078,7 +1165,6 @@
             if (!currentUser) return;
             
             // --- Optimistic UI Update ---
-            // This updates the UI immediately without waiting for Firestore.
             updateLikeUI(postId, !isLiked);
             if (isLiked) {
                 currentUserLikedPosts.delete(postId);
@@ -1092,12 +1178,16 @@
             const postLikeRef = doc(db, "posts", postId, "likes", currentUser.uid);
 
             const batch = writeBatch(db);
-
+            
+            // NEW: Update popularityScore along with likeCount
             if (isLiked) {
                 // User is un-liking
                 batch.delete(userLikeRef);
                 batch.delete(postLikeRef);
-                batch.update(postRef, { likeCount: increment(-1) });
+                batch.update(postRef, { 
+                    likeCount: increment(-1),
+                    popularityScore: increment(-1) // -1 for like
+                });
             } else {
                 // User is liking
                 batch.set(userLikeRef, { likedAt: serverTimestamp() });
@@ -1106,7 +1196,10 @@
                     username: currentUserProfile.username, 
                     likedAt: serverTimestamp() 
                 });
-                batch.update(postRef, { likeCount: increment(1) });
+                batch.update(postRef, { 
+                    likeCount: increment(1),
+                    popularityScore: increment(1) // +1 for like
+                });
             }
 
             try {
@@ -1124,7 +1217,6 @@
             }
         }
         
-        // NEW: Helper for optimistic like updates
         function updateLikeUI(postId, isLiked) {
             // Find all instances of this post (e.g., in home and discover)
             const postElements = document.querySelectorAll(`article[data-post-id="${postId}"]`);
@@ -1157,7 +1249,6 @@
             }
         }
         
-        // This function is still fine, it loads comments once on-demand.
         async function loadCommentsOnce(postId) {
             const listElement = document.getElementById(`comments-list-${postId}`);
             if (!listElement || listElement.dataset.loaded === 'true') {
@@ -1236,7 +1327,11 @@
 
             try {
                 batch.set(newCommentRef, newComment);
-                batch.update(postRef, { commentCount: increment(1) });
+                // NEW: Update commentCount AND popularityScore
+                batch.update(postRef, { 
+                    commentCount: increment(1),
+                    popularityScore: increment(3) // +3 for comment
+                });
                 await batch.commit();
 
                 // Optimistic UI update
@@ -1415,7 +1510,6 @@
 
         // --- 11. DIRECT MESSAGES ---
         
-        // NEW: Back button listener
         dmBackButton.addEventListener('click', () => {
             dmContentPanel.classList.remove('mobile-chat-view');
             dmContentPanel.classList.add('mobile-chat-list');
@@ -1475,7 +1569,7 @@
         async function openConversation(partnerId, partnerUsername) {
             currentChatPartner = { uid: partnerId, username: partnerUsername };
             
-            // NEW: Show chat view on mobile
+            // Show chat view on mobile
             dmContentPanel.classList.remove('mobile-chat-list');
             dmContentPanel.classList.add('mobile-chat-view');
 
@@ -1585,7 +1679,7 @@
         // --- 12. APP NAVIGATION (TABS) ---
         
         const navLinks = document.querySelectorAll('.nav-link');
-        const bottomNavLinks = document.querySelectorAll('.bottom-nav-link'); // NEW
+        const bottomNavLinks = document.querySelectorAll('.bottom-nav-link'); 
         const contentPanels = document.querySelectorAll('.content-panel');
         const sidebarPostButton = document.getElementById('sidebar-post-button');
 
@@ -1601,7 +1695,7 @@
                 }
             });
 
-            // NEW: Update Bottom Nav Link styles
+            // Update Bottom Nav Link styles
             bottomNavLinks.forEach(nav => {
                 if (nav.dataset.target === targetId) {
                     nav.classList.add('active');
@@ -1623,7 +1717,7 @@
             if (targetId === 'content-messages') {
                 loadConversationList();
                 resetChatView();
-                // NEW: Set mobile view to list
+                // Set mobile view to list
                 dmContentPanel.classList.remove('mobile-chat-view');
                 dmContentPanel.classList.add('mobile-chat-list');
             } else if (unsubscribeConversation) {
@@ -1637,6 +1731,56 @@
             window.scrollTo(0, 0);
         }
         
+        // --- 13. ACCOUNT DELETION ---
+        
+        deleteAccountBtn.addEventListener('click', () => {
+            deleteError.textContent = '';
+            confirmDeleteBtn.disabled = false;
+            deleteAccountModal.classList.remove('hidden');
+        });
+        
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteAccountModal.classList.add('hidden');
+        });
+        
+        confirmDeleteBtn.addEventListener('click', () => {
+            deleteUserAccount();
+        });
+        
+        async function deleteUserAccount() {
+            const user = auth.currentUser;
+            if (!user || !currentUserProfile) return;
+            
+            confirmDeleteBtn.disabled = true;
+            deleteError.textContent = 'Deleting account...';
+
+            try {
+                // 1. Delete user's profile doc
+                await deleteDoc(doc(db, "users", user.uid));
+                
+                // 2. Delete user's username doc
+                await deleteDoc(doc(db, "usernames", currentUserProfile.username));
+
+                // 3. Delete user's auth record
+                // This is the sensitive part that might fail
+                await deleteUser(user);
+                
+                // Success. onAuthStateChanged will handle the UI redirect.
+                deleteAccountModal.classList.add('hidden');
+                
+            } catch (error) {
+                console.error("Delete Account Error:", error);
+                if (error.code === 'auth/requires-recent-login') {
+                    deleteError.textContent = 'This is a sensitive action. Please log out, log back in, and try again.';
+                } else {
+                    deleteError.textContent = `Error: ${error.message}`;
+                }
+                confirmDeleteBtn.disabled = false;
+            }
+        }
+        
+        // --- 14. EVENT LISTENERS (DOM LOADED) ---
+
         document.addEventListener('DOMContentLoaded', () => {
             console.log("DOM fully loaded. Attaching nav listeners.");
 
@@ -1654,7 +1798,7 @@
                 });
             });
 
-            // NEW: Bottom nav links
+            // Bottom nav links
             bottomNavLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1677,7 +1821,7 @@
                 showProfile(currentUser.uid);
             });
             
-            // NEW: Pagination Listeners
+            // Pagination Listeners
             homeLoadMoreBtn.addEventListener('click', () => {
                 if(currentUser) loadFollowingFeed(currentUser.uid, true);
             });
@@ -1687,6 +1831,26 @@
             profileLoadMoreBtn.addEventListener('click', () => {
                 const userId = profileUid.textContent; // Get current profile user's ID
                 if(userId) loadProfileFeed(userId, true);
+            });
+            
+            // NEW: Discover filter listener
+            discoverFilters.addEventListener('click', (e) => {
+                const targetButton = e.target.closest('.filter-link');
+                if (!targetButton) return;
+                
+                const filter = targetButton.dataset.filter;
+                if (filter === currentDiscoverFilter) return; // No change
+                
+                currentDiscoverFilter = filter;
+                
+                // Update active class
+                discoverFilters.querySelectorAll('.filter-link').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                targetButton.classList.add('active');
+                
+                // Reload feed
+                loadDiscoverFeed(false);
             });
 
             // Attempt Canvas auth after DOM is loaded
@@ -1709,3 +1873,4 @@
     </script>
 </body>
 </html>
+
